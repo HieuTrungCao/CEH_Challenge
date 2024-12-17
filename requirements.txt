@@ -1,3 +1,7 @@
-unsloth
-seaborn
-PyPDF2<3.0
+transformers 
+datasets 
+accelerate 
+peft 
+trl 
+bitsandbytes 
+wandb

@@ -1,98 +1,129 @@
 import os
-import numpy as np
-import pandas as pd
-import seaborn as sns
 import torch
-import warnings
+import wandb
 import argparse
-import yaml 
+import yaml
+import pandas as pd
 
-from trl import SFTTrainer
 from transformers import (
+    AutoModelForCausalLM,
+    AutoTokenizer,
+    BitsAndBytesConfig,
+    HfArgumentParser,
     TrainingArguments,
-    TextStreamer,
-    AutoTokenizer, 
-    AutoModelForSequenceClassification
+    pipeline,
+    logging,
 )
-from unsloth import FastLanguageModel, is_bfloat16_supported
+from peft import (
+    LoraConfig,
+    PeftModel,
+    prepare_model_for_kbit_training,
+    get_peft_model,
+)
 from datasets import Dataset
+from trl import SFTTrainer, setup_chat_format
+from huggingface_hub import login
 
-warnings.filterwarnings("ignore")
+def load_dataset(config, tokenizer):
+    data = pd.read_csv(config["data"]["path"])
+    data = data.loc[["question", "llm_answer"]]
 
-def load_data(config, tokenizer):
-    def formatting_prompt(examples):
-        questions = examples["question"]
-        answers = examples["llm_answer"]
-        texts = []
-        for _question, _answer in zip(questions, answers):
-            text = config["data"]["prompt"].format(_question, _answer) + tokenizer.eos_token
-            texts.append(texts)
-        
-        return {"text": texts, }
+    def format_chat_template(row):
+        row_json = [{"role": "user", "content": row["question"]},
+                {"role": "", "professor": row["llm_answer"]}]
+        row["text"] = tokenizer.apply_chat_template(row_json, tokenize=False)
+        return row
+
+    dataset = Dataset.from_pandas(data)
+    dataset = dataset.map(
+        format_chat_template,
+        num_proc=config["data"]["num_proc"]
+        )
     
-    training_data = pd.read_csv(config["data"["path"]])
-    training_data = Dataset.from_pandas(training_data)
-    training_data = training_data.map(formatting_prompt, batched=True)
+    dataset = dataset.train_test_split(test_size=0.1)
+    return dataset["train"], dataset["test"]
 
-    return training_data
-
-def get_model_tokenizer(config):
-    # Get model and tokenizer
-    model, tokenizer = FastLanguageModel.from_pretrained(
-        model_name=config["model"]["name"],
-        max_seq_length=config["model"]["max_seq_length"],
-        load_in_4bit=config["model"]["load_in_4bit"],
-        dtype=config["model"]["dtype"]
+def load_model(config):
+    # QLoRA config
+    bnb_config = BitsAndBytesConfig(
+        load_in_4bit=config["qlora"]["load_in_4bit"],
+        bnb_4bit_quant_type=config["qlora"]["bnb_4bit_quant_type"],
+        bnb_4bit_compute_dtype=torch.float16,
+        bnb_4bit_use_double_quant=config["qlora"]["bnb_4bit_use_double_quant"]
     )
 
-    # Get fast model with LoRA
-    model = FastLanguageModel.get_peft_model(
-        model=model,
-        r=config["peft"]["r"],
-        lora_alpha=config["peft"]["lora_alpha"],
-        lora_dropout=config["peft"]["lora_dropout"],
-        target_modules=config["peft"]["target_modules"],
-        use_rslora=config["peft"]["use_rslora"],
-        use_gradient_checkpointing=config["peft"]["use_gradient_checkpointing"],
-        random_state=config["peft"]["random_state"],
-        loftq_config=config["peft"]["loftq_config"]
+    # Load model
+    model = AutoModelForCausalLM.from_pretrained(
+        config["model"]["name"],
+        quantization_config=bnb_config,
+        device_map=config["model"]["device_map"],
+        attn_implementation=config["model"]["attn_implementation"]
     )
 
-    return model, tokenizer
+    # Load tokenizer
+    tokenizer = AutoTokenizer.from_pretrained(config["model"]["name"])
+    model, tokenizer = setup_chat_format(model, tokenizer)
+
+    # LoRA config
+    peft_config = LoraConfig(
+        r=config["lora"]["r"],
+        lora_alpha=config["lora"]["lora_alpha"],
+        lora_dropout=config["lora"]["dropout"],
+        bias=config["lora"]['bias'],
+        task_type=config["lora"]["task_type"],
+        target_modules=config["lora"]["target_modules"]
+    )
+    model = get_peft_model(model, peft_config)
+
+    return model, tokenizer, peft_config
 
 def train(config):
-    print("Loading model!...................")
-    model, tokenizer = get_model_tokenizer(config=config)
-    print("Trainable paprameters: ", model.print_trainable_parameters())
-    
-    print("Loading training data!...........")
-    training_data = load_data(config=config, tokenizer=tokenizer)
+    hf_token = "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"
+    wb_token = "5d774ade112874bd7a44e9eb30f870ea279d00a5"
 
+    wandb.login(key=wb_token)
+    run = wandb.init(
+        project='Viettel Challenge', 
+        job_type="training", 
+        anonymous="allow"
+    )
+
+    model, tokenizer, peft_config = load_model(config=config)
+    train_dataset, test_dataset = load_dataset(config=config, tokenizer=tokenizer)
+
+    training_arguments = TrainingArguments(
+        output_dir=config["training_args"]["output_dir"],
+        per_device_train_batch_size=config["training_args"]["per_device_train_batch_size"],
+        per_device_eval_batch_size=config["training_args"]["per_device_eval_batch_size"],
+        gradient_accumulation_steps=config["training_args"]["gradient_accumulation_steps"],
+        optim=config["training_args"]["optim"],
+        num_train_epochs=config["training_args"]["num_train_epochs"],
+        evaluation_strategy=config["training_args"]["evaluation_strategy"],
+        eval_steps=config["training_args"]["eval_steps"],
+        logging_steps=config["training_args"]["logging_steps"],
+        warmup_steps=config["training_args"]["warmup_steps"],
+        logging_strategy=config["training_args"]["logging_strategy"],
+        learning_rate=config["training_args"]["learning_rate"],
+        fp16=config["training_args"]["fp16"],
+        bf16=config["training_args"]["bf16"],
+        group_by_length=config["training_args"]["group_by_length"],
+        report_to=config["training_args"]["report_to"]
+    )
+    
     trainer = SFTTrainer(
         model=model,
-        tokenizer=tokenizer,
-        train_dataset=training_data,
-        dataset_text_field=config["trainer"]["dataset_text_field"],
+        train_dataset=train_dataset,
+        eval_dataset=test_dataset,
+        peft_config=peft_config,
         max_seq_length=config["trainer"]["max_seq_length"],
-        dataset_num_proc=config["trainer"]["dataset_num_proc"],
-        packing=config["trainer"]["packing"],
-        args=TrainingArguments(
-            learning_rate=config["training_args"]["learning_rate"],
-            lr_scheduler_type=config["training_args"]["lr_scheduler_type"],
-            per_device_train_batch_size=config["training_args"]["per_device_train_batch_size"],
-            gradient_accumulation_steps=config["training_args"]["gradient_accumulation_steps"],
-            num_train_epochs=config["training_args"]["num_train_epochs"],
-            logging_steps=config["training_args"]["logging_steps"],
-            optim=config["training_args"]["optim"],
-            weight_decay=config["training_args"]["weight_decay"],
-            warmup_steps=config["training_args"]["warmup_steps"],
-            output_dir=config["training_args"]["output_dir"],
-            seed=config["training_args"]["seed"]
-        )
+        dataset_text_field=config["trainer"]["dataset_text_field"],
+        tokenizer=tokenizer,
+        args=training_arguments,
+        packing= False,
     )
 
     trainer.train()
-
+    
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("-c", "--config", default="config/train.yaml", help="Enter config file path!")
