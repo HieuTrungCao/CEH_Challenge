@@ -1,0 +1,3 @@
+unsloth
+seaborn
+PyPDF2<3.0
