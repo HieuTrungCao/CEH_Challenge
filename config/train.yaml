@@ -1,6 +1,6 @@
 model:
   name: meta-llama/Llama-3.2-1B
-  max_seq_length: 5020
+  max_seq_length: 4000
   load_in_4bit: True
   dtype: None
 peft:
@@ -18,10 +18,10 @@ data:
     {}
     Answer:
     {}
-  path: data
+  path: data/train/train.csv
 trainer:
   dataset_text_field: text
-  max_seq_length: 5020
+  max_seq_length: 4000
   dataset_num_proc: 2
   packing: True
 training_args:
