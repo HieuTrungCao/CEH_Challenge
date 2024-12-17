@@ -27,7 +27,7 @@ from kaggle_secrets import UserSecretsClient
 
 def load_dataset(config, tokenizer):
     data = pd.read_csv(config["data"]["path"])
-    data = data.loc[["question", "llm_answer"]]
+    data = data.loc[:, ["question", "llm_answer"]]
 
     def format_chat_template(row):
         row_json = [{"role": "user", "content": row["question"]},
