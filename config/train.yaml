@@ -14,7 +14,7 @@ lora:
   task_type: CAUSAL_LM
   target_modules: ["q_proj", "k_proj", "v_proj", "up_proj", "down_proj", "o_proj", "gate_proj"]
 data: 
-  path: data/train/train.csv
+  path: data/GereralAI/train/train.csv
   num_proc: 4
 trainer:
   dataset_text_field: text
