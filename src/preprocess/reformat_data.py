@@ -43,6 +43,6 @@ for item in data[data_columns[1]]:
     new_answers.append(new_item)
 new_data[data_columns[1]] = new_answers
 
-des_path = "data/GereralAI/train/reformat_question.csv"
+des_path = "data/GereralAI/train/train.csv"
 new_df = pd.DataFrame(new_data)
 new_df.to_csv(des_path, index=False)
