@@ -23,6 +23,7 @@ from peft import (
 from datasets import Dataset
 from trl import SFTTrainer, setup_chat_format
 from huggingface_hub import login
+from kaggle_secrets import UserSecretsClient
 
 def load_dataset(config, tokenizer):
     data = pd.read_csv(config["data"]["path"])
@@ -78,9 +79,11 @@ def load_model(config):
     return model, tokenizer, peft_config
 
 def train(config):
-    hf_token = "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"
-    wb_token = "5d774ade112874bd7a44e9eb30f870ea279d00a5"
+    user_secrets = UserSecretsClient()
+    hf_token = user_secrets.get_secret("HUGGINGFACE_KEY")
+    wb_token = user_secrets.get_secret("WANDB_KEY")
 
+    login(token = hf_token)
     wandb.login(key=wb_token)
     run = wandb.init(
         project='Viettel Challenge', 
