@@ -2,6 +2,6 @@ transformers
 datasets 
 accelerate 
 peft 
-trl 
+trl==0.12.2
 bitsandbytes 
 wandb

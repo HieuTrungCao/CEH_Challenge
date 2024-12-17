@@ -126,6 +126,7 @@ def train(config):
     )
 
     trainer.train()
+    wandb.finish()
     
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
