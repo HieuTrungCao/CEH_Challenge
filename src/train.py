@@ -69,7 +69,7 @@ def load_model(config):
     peft_config = LoraConfig(
         r=config["lora"]["r"],
         lora_alpha=config["lora"]["lora_alpha"],
-        lora_dropout=config["lora"]["dropout"],
+        lora_dropout=config["lora"]["lora_dropout"],
         bias=config["lora"]['bias'],
         task_type=config["lora"]["task_type"],
         target_modules=config["lora"]["target_modules"]
