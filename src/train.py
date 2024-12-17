@@ -31,7 +31,7 @@ def load_dataset(config, tokenizer):
 
     def format_chat_template(row):
         row_json = [{"role": "user", "content": row["question"]},
-                {"role": "", "professor": row["llm_answer"]}]
+                {"role": "professor", "content": row["llm_answer"]}]
         row["text"] = tokenizer.apply_chat_template(row_json, tokenize=False)
         return row
 
