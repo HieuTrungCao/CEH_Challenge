@@ -129,6 +129,7 @@ def train(config):
     )
 
     trainer.train()
+    trainer.save_model(config["training_args"]['output_dir'])
     wandb.finish()
     
 if __name__ == "__main__":
