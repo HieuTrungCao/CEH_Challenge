@@ -51,7 +51,7 @@ def infer(config, args):
 
     model, tokenizer = load_model(config, args)
     
-    data = pd.read_csv(config["data"]["path"])
+    data = pd.read_csv(config["data"]["path"], encoding= 'unicode_escape')
 
     for question in data["question"]:
         messages = [
