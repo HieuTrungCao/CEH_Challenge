@@ -67,12 +67,12 @@ def infer(config, args):
         inputs = tokenizer(prompt, return_tensors='pt', padding=True, 
                         truncation=True).to("cuda")
 
-        outputs = model.generate(**inputs, max_length=1000, 
+        outputs = model.generate(**inputs, max_length=config["output"]["max_length"], 
                                 num_return_sequences=1)
 
         text = tokenizer.decode(outputs[0], skip_special_tokens=True)
 
-        print(text.split("professor")[1])
+        print(text.split("professor")[0])
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
