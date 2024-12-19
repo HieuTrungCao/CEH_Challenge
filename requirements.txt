@@ -5,3 +5,6 @@ peft
 trl==0.12.2
 bitsandbytes 
 wandb
+nltk
+inflect
+contractions
