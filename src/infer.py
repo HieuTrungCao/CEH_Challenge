@@ -42,7 +42,7 @@ def load_model(config, args):
     )
 
     # Load tokenizer
-    tokenizer = AutoTokenizer.from_pretrained(config["model"]["name"])
+    tokenizer = AutoTokenizer.from_pretrained(args.model)
     model, tokenizer = setup_chat_format(model, tokenizer)
 
     return model, tokenizer
