@@ -49,7 +49,7 @@ def infer(config, args):
         messages = [
             {
                 "role": "user",
-                "content": preprocess(question)
+                "content": "answer this question about security: " + preprocess(question)
             }
         ]
     

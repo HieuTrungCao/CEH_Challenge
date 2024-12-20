@@ -30,7 +30,7 @@ def load_dataset(path, tokenizer):
     data = data.loc[:, ["question", "llm_answer"]]
 
     def format_chat_template(row):
-        row_json = [{"role": "user", "content": row["question"]},
+        row_json = [{"role": "user", "content": "answer this question about security: " + row["question"]},
                 {"role": "assistant", "content": row["llm_answer"]}]
         row["text"] = tokenizer.apply_chat_template(row_json, tokenize=False)
         return row
