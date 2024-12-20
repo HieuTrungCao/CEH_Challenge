@@ -36,7 +36,7 @@ def load_model(config, args):
 
     # Load tokenizer
     tokenizer = AutoTokenizer.from_pretrained(args.model)
-    
+
     return model, tokenizer
 
 def infer(config, args):
@@ -58,6 +58,7 @@ def infer(config, args):
     result["question"] = data["question"]
 
     answer = []
+    print("Infering")
     for question in data["question"]:
         messages = [
             {
@@ -73,7 +74,7 @@ def infer(config, args):
         answer.append(outputs[0]["generated_text"].split("assistant")[-1])
     
     result = pd.DataFrame(result)
-    result.to_csv(os.path.join(config["output"]["path"], "result.csv"))
+    result.to_csv(os.path.join(config["output"]["path"], "result.csv"), index=False)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
