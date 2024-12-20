@@ -74,7 +74,9 @@ def infer(config, args):
         answer.append(outputs[0]["generated_text"].split("assistant")[-1])
     
     result = pd.DataFrame(result)
-    result.to_csv(os.path.join(config["output"]["path"], "result.csv"), index=False)
+    path_result = os.path.join(config["output"]["path"], "result.csv")
+    print("Result file: ", path_result)
+    result.to_csv(path_result, index=False)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
