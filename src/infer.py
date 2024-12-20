@@ -11,17 +11,9 @@ from transformers import (
     AutoTokenizer,
     BitsAndBytesConfig,
 )
-
-from datasets import Dataset
 from trl import setup_chat_format
-from huggingface_hub import login
 
-messages = [
-    {
-        "role": "user",
-        "content": "Hello doctor, I have bad acne. How do I get rid of it?"
-    }
-]
+from .preprocess.util import preprocess
 
 
 def load_model(config, args):
@@ -57,7 +49,7 @@ def infer(config, args):
         messages = [
             {
                 "role": "user",
-                "content": question
+                "content": preprocess(question)
             }
         ]
     
@@ -72,7 +64,7 @@ def infer(config, args):
 
         text = tokenizer.decode(outputs[0], skip_special_tokens=True)
 
-        print(text.split("professor")[0])
+        print(text.split("assistant")[0])
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()

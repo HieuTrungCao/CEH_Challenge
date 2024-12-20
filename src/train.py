@@ -25,13 +25,13 @@ from trl import SFTTrainer, setup_chat_format
 from huggingface_hub import login
 from kaggle_secrets import UserSecretsClient
 
-def load_dataset(config, tokenizer):
-    data = pd.read_csv(config["data"]["path"])
+def load_dataset(path, tokenizer):
+    data = pd.read_csv(path)
     data = data.loc[:, ["question", "llm_answer"]]
 
     def format_chat_template(row):
         row_json = [{"role": "user", "content": row["question"]},
-                {"role": "professor", "content": row["llm_answer"]}]
+                {"role": "assistant", "content": row["llm_answer"]}]
         row["text"] = tokenizer.apply_chat_template(row_json, tokenize=False)
         return row
 
@@ -41,8 +41,7 @@ def load_dataset(config, tokenizer):
         num_proc=config["data"]["num_proc"]
         )
     
-    dataset = dataset.train_test_split(test_size=0.1)
-    return dataset["train"], dataset["test"]
+    return dataset
 
 def load_model(config):
     # QLoRA config
@@ -92,7 +91,8 @@ def train(config):
     )
 
     model, tokenizer, peft_config = load_model(config=config)
-    train_dataset, test_dataset = load_dataset(config=config, tokenizer=tokenizer)
+    train_dataset = load_dataset(path=config["data"]["train"], tokenizer=tokenizer)
+    valid_dataset = load_dataset(path=config["data"]["valid"], tokenizer=tokenizer)
 
     training_arguments = TrainingArguments(
         output_dir=config["training_args"]["output_dir"],
@@ -119,7 +119,7 @@ def train(config):
     trainer = SFTTrainer(
         model=model,
         train_dataset=train_dataset,
-        eval_dataset=test_dataset,
+        eval_dataset=valid_dataset,
         peft_config=peft_config,
         max_seq_length=config["trainer"]["max_seq_length"],
         dataset_text_field=config["trainer"]["dataset_text_field"],
