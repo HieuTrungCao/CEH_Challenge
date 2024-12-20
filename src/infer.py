@@ -10,6 +10,7 @@ from transformers import (
     AutoModelForCausalLM,
     AutoTokenizer,
     BitsAndBytesConfig,
+    pipeline
 )
 from trl import setup_chat_format
 
@@ -45,6 +46,19 @@ def infer(config, args):
     
     data = pd.read_csv(config["data"]["path"], encoding= 'unicode_escape')
 
+    pipe = pipeline(
+            "text-generation",
+            model=model,
+            tokenizer=tokenizer,
+            torch_dtype=torch.float16,
+            device_map="auto",
+        )
+    
+    result = {}
+    result["index"] = data["index"]
+    result["question"] = data["question"]
+
+    answer = []
     for question in data["question"]:
         messages = [
             {
@@ -56,15 +70,11 @@ def infer(config, args):
         prompt = tokenizer.apply_chat_template(messages, tokenize=False, 
                                         add_generation_prompt=True)
 
-        inputs = tokenizer(prompt, return_tensors='pt', padding=True, 
-                        truncation=True).to("cuda")
-
-        outputs = model.generate(**inputs, max_length=config["output"]["max_length"], 
-                                num_return_sequences=1)
-
-        text = tokenizer.decode(outputs[0], skip_special_tokens=True)
-
-        print(text.split("assistant")[0])
+        outputs = pipe(prompt, max_new_tokens=120, do_sample=True, temperature=0.7, top_k=50, top_p=0.95)
+        answer.append(outputs[0]["generated_text"].split("assistant")[-1])
+    
+    result = pd.DataFrame(result)
+    result.to_csv(os.path.join(config["output"]["path"], "result.csv"))
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
