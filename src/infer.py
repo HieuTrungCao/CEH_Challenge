@@ -74,6 +74,9 @@ def infer(config, args):
         answer.append(outputs[0]["generated_text"].split("assistant")[-1])
     
     result = pd.DataFrame(result)
+    if not os.path.exists(config["output"]["path"]):
+        os.mkdir(config["output"]["path"])
+        
     path_result = os.path.join(config["output"]["path"], "result.csv")
     print("Result file: ", path_result)
     result.to_csv(path_result, index=False)
