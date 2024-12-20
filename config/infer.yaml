@@ -9,4 +9,4 @@ data:
   path: data/GereralAI/B1 + B1a/B1_a.csv
 output:
   max_length: 1000
-  path: result
+  path: ./result
