@@ -5,8 +5,6 @@ qlora:
   load_in_4bit: True
   bnb_4bit_quant_type: nf4
   bnb_4bit_use_double_quant: True
-data: 
-  path: data/GereralAI/B1 + B1a/B1_a.csv
 output:
   max_length: 1000
   path: ./result

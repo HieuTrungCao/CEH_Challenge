@@ -43,7 +43,7 @@ def infer(config, args):
 
     model, tokenizer = load_model(config, args)
     
-    data = pd.read_csv(config["data"]["path"], encoding= 'unicode_escape')
+    data = pd.read_csv(args.question, encoding= 'unicode_escape')
 
     pipe = pipeline(
             "text-generation",
@@ -73,10 +73,12 @@ def infer(config, args):
         outputs = pipe(prompt, max_new_tokens=120, do_sample=True, temperature=0.7, top_k=50, top_p=0.95)
         answer.append(outputs[0]["generated_text"].split("assistant")[-1])
     
+    result["llm_answer"] = answer
+
     result = pd.DataFrame(result)
     if not os.path.exists(config["output"]["path"]):
         os.mkdir(config["output"]["path"])
-        
+
     path_result = os.path.join(config["output"]["path"], "result.csv")
     print("Result file: ", path_result)
     result.to_csv(path_result, index=False)
@@ -85,6 +87,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("-c", "--config", default="config/infer.yaml", help="Enter config file path!")
     parser.add_argument("-m", "--model", help="Enter model path!")
+    parser.add_argument("-q", "--question", help="Enter question files!")
 
     args = parser.parse_args()
 
