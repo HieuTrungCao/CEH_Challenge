@@ -13,7 +13,7 @@ from transformers import (
 )
 from trl import setup_chat_format
 
-from .preprocess.util import preprocess
+from preprocess.util import preprocess
 
 
 def load_model(config, args):
