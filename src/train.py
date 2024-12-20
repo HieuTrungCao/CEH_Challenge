@@ -77,6 +77,28 @@ def load_model(config):
 
     return model, tokenizer, peft_config
 
+def save_mode(base_model, new_model_path, huggingface_repo):
+    tokenizer = AutoTokenizer.from_pretrained(base_model)
+
+    base_model_reload = AutoModelForCausalLM.from_pretrained(
+            base_model,
+            return_dict=True,
+            low_cpu_mem_usage=True,
+            torch_dtype=torch.float16,
+            device_map="auto",
+            trust_remote_code=True,
+    )
+
+    base_model_reload, tokenizer = setup_chat_format(base_model_reload, tokenizer)
+
+    # Merge adapter with base model
+    model = PeftModel.from_pretrained(base_model_reload, new_model_path)
+
+    model = model.merge_and_unload()
+    model.push_to_hub(huggingface_repo)
+    tokenizer.push_to_hub(huggingface_repo)
+
+
 def train(config):
     user_secrets = UserSecretsClient()
     hf_token = user_secrets.get_secret("HUGGINGFACE_KEY")
@@ -131,6 +153,11 @@ def train(config):
     trainer.train()
     trainer.save_model(os.path.join(config["training_args"]['output_dir'], "best"))
     wandb.finish()
+    save_mode(
+        config["model"]["name"], 
+        os.path.join(os.path.join(config["training_args"]['output_dir'], "best")),
+        config["huggingface"]["repo_name"]
+        )
     
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
