@@ -29,7 +29,7 @@ def load_dataset(path, tokenizer):
     data = pd.read_csv(path)
 
     def format_chat_template(row):
-        row_json = [{"role": "user", "content": "complete this sentence: " + row["question"]},
+        row_json = [{"role": "user", "content": "complete this sentence: " + row["sentence"]},
                 {"role": "assistant", "content": row["answer"]}]
         row["text"] = tokenizer.apply_chat_template(row_json, tokenize=False)
         return row
