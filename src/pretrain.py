@@ -126,10 +126,7 @@ def train(config):
         fp16=config["training_args"]["fp16"],
         bf16=config["training_args"]["bf16"],
         group_by_length=config["training_args"]["group_by_length"],
-        report_to=config["training_args"]["report_to"],
-        save_strategy=config["training_args"]['save_strategy'],
-        save_total_limit=config["training_args"]['save_total_limit'],
-        load_best_model_at_end=config["training_args"]["load_best_model_at_end"]
+        report_to=config["training_args"]["report_to"]
     )
     
     trainer = SFTTrainer(
