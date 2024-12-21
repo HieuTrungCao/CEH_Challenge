@@ -3,10 +3,13 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import os
 
+def custom_len(text):
+    return len(text.split())
+
 data = pd.read_csv("data/GereralAI/train/train.csv")
 
-title = 'Distribution of question + llm_answer Lengths'
-data['question_llm_answer_length'] = data['question'].apply(len) + data['llm_answer'].apply(len)
+title = 'Distribution of question + llm_answer Lengths on train'
+data['question_llm_answer_length'] = data['question'].apply(custom_len) + data['llm_answer'].apply(custom_len)
 plt.figure(figsize=(10, 5))
 sns.histplot(data['question_llm_answer_length'], bins=50, kde=True)
 plt.title(title)
