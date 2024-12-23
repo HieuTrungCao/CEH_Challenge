@@ -31,7 +31,7 @@ training_args:
   logging_steps: 1
   optim: paged_adamw_32bit
   output_dir: output
-  evaluation_strategy: epoch
+  evaluation_strategy: steps
   eval_steps: 0.2
   warmup_steps: 10
   logging_strategy: steps
@@ -39,8 +39,5 @@ training_args:
   bf16: False
   group_by_length: True
   report_to: wandb
-  save_strategy: epoch
-  save_total_limit: 5
-  load_best_model_at_end: True
 huggingface:
   repo_name: ueihieu/llama-viettel
