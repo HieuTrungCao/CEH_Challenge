@@ -90,6 +90,7 @@ def save_mode(base_model, new_model_path, huggingface_repo):
             trust_remote_code=True,
     )
 
+    tokenizer.chat_template = None
     base_model_reload, tokenizer = setup_chat_format(base_model_reload, tokenizer)
 
     # Merge adapter with base model
