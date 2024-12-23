@@ -62,6 +62,7 @@ def load_model(config):
 
     # Load tokenizer
     tokenizer = AutoTokenizer.from_pretrained(config["model"]["name"])
+    tokenizer.chat_template = None
     model, tokenizer = setup_chat_format(model, tokenizer)
 
     # LoRA config
