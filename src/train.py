@@ -99,9 +99,6 @@ def save_mode(base_model, new_model_path, huggingface_repo):
     model.push_to_hub(huggingface_repo)
     tokenizer.push_to_hub(huggingface_repo)
 
-def compute_metric(pred):
-    print("Pred: ", pred)
-
 def train(config):
     user_secrets = UserSecretsClient()
     hf_token = user_secrets.get_secret("HUGGINGFACE_KEY")
@@ -147,8 +144,7 @@ def train(config):
         dataset_text_field=config["trainer"]["dataset_text_field"],
         tokenizer=tokenizer,
         args=training_arguments,
-        packing= False,
-        compute_metrics=compute_metric
+        packing= False
     )
 
     trainer.train()
