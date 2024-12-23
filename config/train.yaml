@@ -1,5 +1,5 @@
 model:
-  name: meta-llama/Llama-3.2-1B
+  name: ueihieu/pretrain_LLama
   device_map: auto
   attn_implementation: eager
 qlora:
@@ -27,7 +27,7 @@ training_args:
   per_device_train_batch_size: 2
   per_device_eval_batch_size: 1
   gradient_accumulation_steps: 8
-  num_train_epochs: 40
+  num_train_epochs: 20
   logging_steps: 1
   optim: paged_adamw_32bit
   output_dir: output
