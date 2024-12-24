@@ -12,10 +12,10 @@ if __name__ == "__main__":
 
     preds = pd.read_csv(args.predict)
     preds = list(preds["llm_answer"])
-    for item in preds:
+    for i, item in enumerate(preds):
         item = item.replace("\n", "")
         item = item.lower()
-        print("Item: ", item)
+        print("index: ", i)
         item = item.split("the correct answer is ")[1].split()[0].split(".")[0]
         preds.append(item)
 
