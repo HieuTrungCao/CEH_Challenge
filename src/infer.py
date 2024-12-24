@@ -70,7 +70,7 @@ def infer(config, args):
         prompt = tokenizer.apply_chat_template(messages, tokenize=False, 
                                         add_generation_prompt=True)
 
-        outputs = pipe(prompt, max_new_tokens=120, do_sample=True, temperature=0.7, top_k=50, top_p=0.95)
+        outputs = pipe(prompt, max_new_tokens=120, do_sample=True, temperature=0, top_k=50, top_p=0.95)
         answer.append(outputs[0]["generated_text"].split("assistant")[-1])
     
     result["llm_answer"] = answer
@@ -82,6 +82,20 @@ def infer(config, args):
     path_result = os.path.join(config["output"]["path"], "result.csv")
     print("Result file: ", path_result)
     result.to_csv(path_result, index=False)
+
+    ground_truth = list(data["ground_truth"])
+    preds = []
+    for item in answer:
+        item = item.lower()
+        item = item.split("the correct answer is ")[1].split()[0].split(".")[0]
+        preds.append(item)
+
+    count = 0
+    for p, g in zip(preds, ground_truth):
+        if p == g.lower():
+            count += 1
+
+    print("Accuracy: ", count / len(preds))
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
