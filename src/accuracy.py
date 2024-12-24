@@ -15,6 +15,7 @@ if __name__ == "__main__":
     for item in preds:
         item = item.replace("\n", "")
         item = item.lower()
+        print("Item: ", item)
         item = item.split("the correct answer is ")[1].split()[0].split(".")[0]
         preds.append(item)
 
