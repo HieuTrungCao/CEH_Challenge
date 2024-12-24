@@ -13,9 +13,11 @@ if __name__ == "__main__":
     preds = pd.read_csv(args.predict)
     preds = list(preds["llm_answer"])
     for i, item in enumerate(preds):
+        if "correct answer is" not in item:
+            preds.append("l")
+            continue
         item = item.replace("\n", "")
         item = item.lower()
-        print("index: ", i)
         item = item.split("the correct answer is ")[1].split()[0].split(".")[0]
         preds.append(item)
 
