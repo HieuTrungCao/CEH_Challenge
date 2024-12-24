@@ -11,7 +11,7 @@ if __name__ == "__main__":
     ground_truth = list(ground_truth["ground_truth"])
 
     preds = pd.read_csv(args.predict)
-    preds = list(preds)
+    preds = list(preds["llm_answer"])
     for item in preds:
         item = item.replace("\n", "")
         item = item.lower()
