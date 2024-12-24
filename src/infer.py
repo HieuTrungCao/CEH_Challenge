@@ -58,7 +58,7 @@ def infer(config, args):
     result["question"] = data["question"]
 
     answer = []
-    print("Infering")
+    print("Inferring")
     for question in data["question"]:
         messages = [
             {
@@ -82,20 +82,6 @@ def infer(config, args):
     path_result = os.path.join(config["output"]["path"], "result.csv")
     print("Result file: ", path_result)
     result.to_csv(path_result, index=False)
-
-    ground_truth = list(data["ground_truth"])
-    preds = []
-    for item in answer:
-        item = item.lower()
-        item = item.split("the correct answer is ")[1].split()[0].split(".")[0]
-        preds.append(item)
-
-    count = 0
-    for p, g in zip(preds, ground_truth):
-        if p == g.lower():
-            count += 1
-
-    print("Accuracy: ", count / len(preds))
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
