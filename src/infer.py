@@ -37,6 +37,9 @@ def load_model(config, args):
     # Load tokenizer
     tokenizer = AutoTokenizer.from_pretrained(args.model)
 
+    if args.model == "meta-llama/Llama-3.2-1B":
+        model, tokenizer = setup_chat_format(model, tokenizer)
+
     return model, tokenizer
 
 def infer(config, args):
