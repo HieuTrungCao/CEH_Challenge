@@ -74,7 +74,6 @@ def infer(config, args):
                                         add_generation_prompt=True)
 
         outputs = pipe(prompt, max_new_tokens=300, do_sample=True, temperature=0.1, top_k=50, top_p=0.95)
-        print("Output: ", outputs)
         answer.append(outputs[0]["generated_text"].split("assistant")[-1])
     
     result["llm_answer"] = answer
