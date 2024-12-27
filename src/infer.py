@@ -90,7 +90,7 @@ def infer(config, args):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("-c", "--config", default="config/infer.yaml", help="Enter config file path!")
-    parser.add_argument("-m", "--model", help="Enter model path!")
+    parser.add_argument("-m", "--model", default="ueihieu/llama-viettel", help="Enter model path!")
     parser.add_argument("-q", "--question", help="Enter question files!")
 
     args = parser.parse_args()

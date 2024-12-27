@@ -8,11 +8,13 @@ if __name__ == "__main__":
     args = parses.parse_args()
 
     ground_truth = pd.read_csv(args.ground_truth, encoding= 'unicode_escape')
+    print("Baseline: ", sum(list(ground_truth["_is_correct"])) / len(list(ground_truth["_is_correct"])))
     ground_truth = list(ground_truth["ground_truth"])
 
-    preds = pd.read_csv(args.predict)
-    preds = list(preds["llm_answer"])
-    for i, item in enumerate(preds):
+    answers = pd.read_csv(args.predict)
+    answers = list(answers["llm_answer"])
+    preds = []
+    for i, item in enumerate(answers):
         if "correct answer is" not in item:
             preds.append("l")
             continue
@@ -23,6 +25,7 @@ if __name__ == "__main__":
 
     count = 0
     for p, g in zip(preds, ground_truth):
+        print("pred: {}, ground_truth: {}".format(p, g))
         if p == g.lower():
             count += 1
 
